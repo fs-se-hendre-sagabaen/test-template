@@ -7,7 +7,7 @@ set -u
 
 # T E S T  S U I T E
 #################################################################################################################
-BASE_URL=${BASE_URL:-http://localhost:3000}
+BASE_URL=${BASE_URL:-http://host.docker.internal:3000}
 PASS=0
 FAIL=0
 RED='\033[0;31m'
