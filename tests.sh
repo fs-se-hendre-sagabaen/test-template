@@ -29,6 +29,7 @@ request() {
     body=$(printf "%s" "$resp" | sed '$d')
 }
 
+# I M P O R T A N T
 #################################################################################################################
 
 # Try to extract an `id` from JSON using jq if available, otherwise a regexp fallback
@@ -51,6 +52,8 @@ if [ "$status" = "200" ]; then
 else
     err "GET /health expected 200, got $status"
 fi
+
+#################################################################################################################
 
 # 2) Create an item (POST /items)
 payload='{"name":"test item","description":"created by integration test"}'
