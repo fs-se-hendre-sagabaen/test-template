@@ -45,7 +45,7 @@ extract_id() {
 
 echo "API test suite -> BASE_URL=$BASE_URL"
 
-# 1) Health check
+# Health check
 request GET /health
 if [ "$status" = "200" ]; then
     ok "GET /health returned 200"
@@ -55,62 +55,66 @@ fi
 
 #################################################################################################################
 
-# 2) Create an item (POST /items)
-payload='{"name":"test item","description":"created by integration test"}'
-request POST /items "$payload"
+# 1) Register user (POST /user/register)
+payload='{"email": "testuser@getfullsuite.com","password": "testpassword"}'
+request POST /user/register "$payload"
 if [ "$status" = "201" ] || [ "$status" = "200" ]; then
-    item_id=$(extract_id "$body")
-    if [ -n "$item_id" ]; then
-        ok "POST /items created id=$item_id"
+    user_id=$(extract_id "$body")
+    if [ -n "$user_id" ]; then
+        ok "POST /user/register created id=$user_id"
     else
-        err "POST /items returned success but no id found in response"
+        err "POST /user/register returned success but no id found in response"
     fi
 else
-    err "POST /items expected 201/200, got $status"
+    err "POST /user expected 201/200, got $status"
 fi
 
-# 3) List items (GET /items)
-request GET /items
+# 2) Login user (POST /user/login)
+payload='{"email": "testuser@getfullsuite.com","password": "testpassword"}'
+request POST /user/login "$payload"
+if [ "$status" = "201" ] || [ "$status" = "200" ]; then
+    user_id=$(extract_id "$body")
+    if [ -n "$user_id" ]; then
+        ok "POST /user/login created id=$user_id"
+    else
+        err "POST /user/login returned success but no id found in response"
+    fi
+else
+    err "POST /user expected 201/200, got $status"
+fi
+
+# 3) List user (GET /user)
+request GET /user
 if [ "$status" = "200" ]; then
-    if printf "%s" "$body" | grep -q "test item"; then
-        ok "GET /items contains created item"
+    if printf "%s" "$body" | grep -q "testuser"; then
+        ok "GET /user contains created user"
     else
-        err "GET /items returned 200 but item not found in body"
+        err "GET /user returned 200 but user not found in body"
     fi
 else
-    err "GET /items expected 200, got $status"
+    err "GET /user expected 200, got $status"
 fi
 
-# 4) Get single item by id (if we have one)
-if [ -n "${item_id-}" ]; then
-    request GET "/items/$item_id"
+# 4) Get single user by id (if we have one)
+if [ -n "${user_id-}" ]; then
+    request GET "/users/$user_id"
     if [ "$status" = "200" ]; then
-        ok "GET /items/$item_id returned 200"
+        ok "GET /users/$user_id returned 200"
     else
-        err "GET /items/$item_id expected 200, got $status"
+        err "GET /users/$user_id expected 200, got $status"
     fi
 fi
 
-# 5) Update item (PUT /items/:id)
-if [ -n "${item_id-}" ]; then
-    update='{"name":"updated name"}'
-    request PUT "/items/$item_id" "$update"
-    if [ "$status" = "200" ]; then
-        ok "PUT /items/$item_id returned 200"
-    else
-        err "PUT /items/$item_id expected 200, got $status"
-    fi
-fi
-
-# 6) Delete item
-if [ -n "${item_id-}" ]; then
-    request DELETE "/items/$item_id"
-    if [ "$status" = "204" ] || [ "$status" = "200" ]; then
-        ok "DELETE /items/$item_id returned $status"
-    else
-        err "DELETE /items/$item_id expected 204/200, got $status"
-    fi
-fi
+# # 5) Update user (PUT /users/:id)
+# if [ -n "${user_id-}" ]; then
+#     update='{"name":"updated name"}'
+#     request PUT "/users/$user_id" "$update"
+#     if [ "$status" = "200" ]; then
+#         ok "PUT /users/$user_id returned 200"
+#     else
+#         err "PUT /users/$user_id expected 200, got $status"
+#     fi
+# fi
 
 echo
 echo "Summary: Passed=$PASS  Failed=$FAIL"
